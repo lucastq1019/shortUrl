@@ -1,0 +1,26 @@
+syntax = "proto3";
+package shortener;
+
+option go_package = "github.com/username/shorturl/internal/rpc/proto";
+
+service ShortenerService{
+    rpc CreateShortLink (CreateShortLinkRequest) returns (CreateShortLinkResponse);
+    rpc GetLongURL (GetLongURLRequest) returns (GetLongURLResponse);
+}
+
+message CreateShortLinkRequest {
+    string long_url = 1;
+}
+message CreateShortLinkResponse {
+    string short_key = 1;
+}
+
+message GetLongURLRequest{
+    string short_key = 1;
+}
+
+message GetLongURLResponse{
+    string long_url = 1;
+    bool is_found = 2;
+}
+

@@ -1,0 +1,21 @@
+# 应用通用配置
+GinMode: debug
+HttpAddr: ":8080"
+MySQLDSN: "new_user:new_password@tcp(db-host:3306)/shorturl_prod"
+RedisAddr: "redis.internal:6379"
+SQLitePath: "./data/prod.db"
+
+# gRPC 客户端需要连接的外部服务地址
+GRPCServers:
+  Shortener: 
+    Addr: "localhost:9090" 
+  Clipboarder: 
+    Addr: "localhost:9091"
+
+# 本应用自身作为 gRPC 服务器的监听配置
+RPC:
+  Shortener:
+    Addr: ":9090"
+  Clipboarder:
+    Addr: ":9091"
+

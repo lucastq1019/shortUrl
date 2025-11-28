@@ -1,0 +1,26 @@
+syntax = "proto3";
+package clipboarder;
+
+option go_package = "github.com/username/shorturl/internal/rpc/proto";
+
+service ClipboarderService{
+    rpc SaveClipboard (SaveClipboardRequest) returns (SaveClipboardResponse);
+    rpc GetClipboard (GetClipboardRequest) returns (GetClipboardResponse);
+}
+
+message SaveClipboardRequest {
+    string clipboarder_content = 1;
+}
+message SaveClipboardResponse {
+    string short_key = 1;
+}
+
+message GetClipboardRequest{
+    string short_key = 1;
+}
+
+message GetClipboardResponse{
+    string GetClipboard = 1;
+    bool is_found = 2;
+}
+

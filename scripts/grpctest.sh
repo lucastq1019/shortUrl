@@ -1,0 +1,1 @@
+grpcurl -plaintext -d '{}' localhost:9090 shorturl.ShortURLService/Ping
