@@ -1,0 +1,13 @@
+grpc.reflection.v1.ServerReflection is a service:
+service ServerReflection {
+  rpc ServerReflectionInfo ( stream .grpc.reflection.v1.ServerReflectionRequest ) returns ( stream .grpc.reflection.v1.ServerReflectionResponse );
+}
+grpc.reflection.v1alpha.ServerReflection is a service:
+service ServerReflection {
+  rpc ServerReflectionInfo ( stream .grpc.reflection.v1alpha.ServerReflectionRequest ) returns ( stream .grpc.reflection.v1alpha.ServerReflectionResponse );
+}
+shortener.ShortenerService is a service:
+service ShortenerService {
+  rpc CreateShortLink ( .shortener.CreateShortLinkRequest ) returns ( .shortener.CreateShortLinkResponse );
+  rpc GetLongURL ( .shortener.GetLongURLRequest ) returns ( .shortener.GetLongURLResponse );
+}

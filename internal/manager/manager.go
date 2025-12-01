@@ -74,7 +74,6 @@ func (m *ClientManager) InitServices(ctx context.Context, configs []string, opts
 }
 
 func (m *ClientManager) GetClient(serviceName string) (interface{}, error) {
-	log.Println(m)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	client, ok := m.clientMap[serviceName]
@@ -101,7 +100,6 @@ func (m *ClientManager) Close() error {
 	// 清空 maps
 	m.connMap = make(map[string]*grpc.ClientConn)
 	m.clientMap = make(map[string]interface{})
-	// 清空 maps 放在这里，确保即使有错误，maps 也会被清空
 
 	if allErrMsg.Len() > 0 {
 		return errors.New(allErrMsg.String())
