@@ -141,3 +141,18 @@ go test -cover
 动态创建 (Factory Pattern): 引入 map[ServiceName]ClientFactory（工厂映射），将创建特定类型客户端存根的逻辑（即 pb.New...Client(conn)）与核心管理器逻辑分离，避免使用 switch/case，提高可扩展性。
 
 安全和清理 (Safety): 使用 sync.RWMutex 保证并发安全，并提供 Close() 方法安全关闭所有唯一的 Conn 实例，防止资源泄漏。
+
+
+### 生成proto
+``` sh
+# 生成proto文件到目标位置
+protoc --go_out=./internal/rpc/ --go_opt=paths=source_relative \
+       --go-grpc_out=./internal/rpc/ --go-grpc_opt=paths=source_relative \
+       proto/*.proto
+```
+
+### 脚本测试
+
+
+### 
+  

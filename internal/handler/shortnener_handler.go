@@ -11,6 +11,7 @@ import (
 func (rh *RouterHandlers) RegisterShortenerRoutes(group *gin.RouterGroup) {
 	group.POST("/c", rh.HandleCreateShortLink)
 	group.GET("/:key", rh.HandleGetLongURL)
+	group.GET("/all", rh.HandleGetAllShortLink)
 }
 
 // HandleCreateShortLink 是 Shortener 资源的 HTTP Handler
@@ -38,7 +39,6 @@ func (rh *RouterHandlers) HandleCreateShortLink(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"short_url": resp.ShortKey})
 }
 
-// HandleGetLongURL 是 Shortener 资源的另一个 HTTP Handler
 func (rh *RouterHandlers) HandleGetLongURL(ctx *gin.Context) {
 	var reqBody struct {
 		ShortKey string `json:"short_key" binding:"required"`
@@ -60,4 +60,17 @@ func (rh *RouterHandlers) HandleGetLongURL(ctx *gin.Context) {
 
 	// ... 返回响应
 	ctx.JSON(http.StatusOK, gin.H{"long_url": resp.GetLongUrl()})
+}
+
+func (rh *RouterHandlers) HandleGetAllShortLink(ctx *gin.Context) {
+
+	// 调用 gRPC 客户端封装层
+	resp, err := rh.Shortener.GetAllShortLink(ctx, &shortenerpb.GetAllShortLinkRequest{})
+
+	if err != nil {
+		log.Printf("调用获取全部链接错误,%v", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"short_links": resp.ShortLinks})
 }

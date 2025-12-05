@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 )
@@ -102,6 +103,20 @@ func (mc *MemoryCache) Get(ctx context.Context, key string) (interface{}, error)
 	}
 
 	return item.value, nil
+}
+
+// Get 获取缓存值，如果过期则返回 nil
+func (mc *MemoryCache) GetAll(ctx context.Context, pattern string) (interface{}, error) {
+	mc.mu.RLock()
+	defer mc.mu.RUnlock()
+	result := make(map[string]*cacheItem)
+	for key, value := range mc.data {
+		if strings.HasPrefix(key, pattern) {
+			result[key] = value
+		}
+	}
+
+	return result, nil
 }
 
 // Delete 删除指定的缓存键

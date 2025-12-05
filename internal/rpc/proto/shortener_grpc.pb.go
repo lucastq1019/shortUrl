@@ -8,7 +8,6 @@ package proto
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -22,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ShortenerService_CreateShortLink_FullMethodName = "/shortener.ShortenerService/CreateShortLink"
 	ShortenerService_GetLongURL_FullMethodName      = "/shortener.ShortenerService/GetLongURL"
+	ShortenerService_GetAllShortLink_FullMethodName = "/shortener.ShortenerService/GetAllShortLink"
 )
 
 // ShortenerServiceClient is the client API for ShortenerService service.
@@ -30,6 +30,7 @@ const (
 type ShortenerServiceClient interface {
 	CreateShortLink(ctx context.Context, in *CreateShortLinkRequest, opts ...grpc.CallOption) (*CreateShortLinkResponse, error)
 	GetLongURL(ctx context.Context, in *GetLongURLRequest, opts ...grpc.CallOption) (*GetLongURLResponse, error)
+	GetAllShortLink(ctx context.Context, in *GetAllShortLinkRequest, opts ...grpc.CallOption) (*GetAllShortLinkResponse, error)
 }
 
 type shortenerServiceClient struct {
@@ -60,12 +61,23 @@ func (c *shortenerServiceClient) GetLongURL(ctx context.Context, in *GetLongURLR
 	return out, nil
 }
 
+func (c *shortenerServiceClient) GetAllShortLink(ctx context.Context, in *GetAllShortLinkRequest, opts ...grpc.CallOption) (*GetAllShortLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllShortLinkResponse)
+	err := c.cc.Invoke(ctx, ShortenerService_GetAllShortLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShortenerServiceServer is the server API for ShortenerService service.
 // All implementations must embed UnimplementedShortenerServiceServer
 // for forward compatibility.
 type ShortenerServiceServer interface {
 	CreateShortLink(context.Context, *CreateShortLinkRequest) (*CreateShortLinkResponse, error)
 	GetLongURL(context.Context, *GetLongURLRequest) (*GetLongURLResponse, error)
+	GetAllShortLink(context.Context, *GetAllShortLinkRequest) (*GetAllShortLinkResponse, error)
 	mustEmbedUnimplementedShortenerServiceServer()
 }
 
@@ -81,6 +93,9 @@ func (UnimplementedShortenerServiceServer) CreateShortLink(context.Context, *Cre
 }
 func (UnimplementedShortenerServiceServer) GetLongURL(context.Context, *GetLongURLRequest) (*GetLongURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLongURL not implemented")
+}
+func (UnimplementedShortenerServiceServer) GetAllShortLink(context.Context, *GetAllShortLinkRequest) (*GetAllShortLinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllShortLink not implemented")
 }
 func (UnimplementedShortenerServiceServer) mustEmbedUnimplementedShortenerServiceServer() {}
 func (UnimplementedShortenerServiceServer) testEmbeddedByValue()                          {}
@@ -139,6 +154,24 @@ func _ShortenerService_GetLongURL_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShortenerService_GetAllShortLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllShortLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServiceServer).GetAllShortLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortenerService_GetAllShortLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServiceServer).GetAllShortLink(ctx, req.(*GetAllShortLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShortenerService_ServiceDesc is the grpc.ServiceDesc for ShortenerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +186,10 @@ var ShortenerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLongURL",
 			Handler:    _ShortenerService_GetLongURL_Handler,
+		},
+		{
+			MethodName: "GetAllShortLink",
+			Handler:    _ShortenerService_GetAllShortLink_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

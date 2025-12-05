@@ -34,3 +34,7 @@ func (s *Server) CreateShortLink(ctx context.Context, req *shorturlpb.CreateShor
 func (s *Server) GetLongURL(ctx context.Context, req *shorturlpb.GetLongURLRequest) (*shorturlpb.GetLongURLResponse, error) {
 	return s.service.GetLongURL(ctx, req)
 }
+
+func (s *Server) GetAllShortLink(ctx context.Context, req *shorturlpb.GetAllShortLinkRequest) (*shorturlpb.GetAllShortLinkResponse, error) {
+	return s.service.GetAllShortLink(ctx, req)
+}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -143,6 +144,124 @@ func (r *urlRepository) Get(ctx context.Context, shortCode string) (*model.Short
 	}
 }
 
+// 优先级：RedisCache > MemoryCache > MySQLDB > SQLiteDB
+func (r *urlRepository) GetAll(ctx context.Context, pattern string) (*[](model.ShortURL), error) {
+	type result struct {
+		allLinks *[]model.ShortURL
+		err      error
+	}
+
+	resultCh := make(chan result, 1) // 只需要第一个结果
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	var once sync.Once
+
+	// 辅助函数：发送结果并取消其他 goroutine
+	sendResult := func(allLinks *[]model.ShortURL, err error) {
+		once.Do(func() {
+			select {
+			case resultCh <- result{allLinks: allLinks, err: err}:
+				cancel() // 取消其他 goroutine
+			case <-ctx.Done():
+			}
+		})
+	}
+
+	// 从 Redis 获取
+	if r.sources.RedisCache != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			url, err := r.getAllForRedis(ctx, pattern)
+			log.Println("redis return", url)
+			if err == nil && url != nil {
+				sendResult(url, nil)
+			}
+		}()
+	}
+
+	// 从 Memory 获取
+	if r.sources.MemoryCache != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			url, err := r.getAllForMemory(ctx, pattern)
+			if err == nil && url != nil {
+				sendResult(url, nil)
+			}
+		}()
+	}
+
+	// 从 MySQL 获取
+	if r.sources.MySQLDB != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			url, err := r.getAllForMysql(ctx)
+			if err == nil && url != nil {
+				sendResult(url, nil)
+			}
+		}()
+	}
+
+	// 从 SQLite 获取
+	if r.sources.SQLiteDB != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			url, err := r.getAllForSqlite(ctx)
+			if err == nil && url != nil {
+				sendResult(url, nil)
+			}
+		}()
+	}
+
+	// 等待第一个结果或所有 goroutine 完成
+	doneCh := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+
+	// 等待第一个结果
+	select {
+	case res := <-resultCh:
+		log.Println(res)
+		if res.err != nil {
+			return nil, res.err
+		}
+		if res.allLinks != nil {
+			return res.allLinks, nil
+		}
+
+		// 如果收到 nil，继续等待其他结果
+		// 这种情况理论上不应该发生，因为只有 url != nil 时才发送
+		// 但为了安全，我们继续等待
+		select {
+		case res := <-resultCh:
+			if res.allLinks != nil {
+				return res.allLinks, nil
+			}
+			// 继续等待所有完成
+			<-doneCh
+			return nil, fmt.Errorf("short code not found: short1")
+		case <-doneCh:
+			return nil, fmt.Errorf("short code not found: short2")
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	case <-doneCh:
+		// 所有 goroutine 都完成了，但没有找到结果
+		return nil, fmt.Errorf("short code not found: short3")
+	case <-ctx.Done():
+		// 外部 context 被取消
+		wg.Wait()
+		return nil, ctx.Err()
+	}
+}
+
 // Save 保存到多个数据源
 // 缓存：优先写入 Redis，如果失败则写入 Memory
 // 数据库：优先写入 MySQL，如果失败则写入 SQLite
@@ -217,7 +336,6 @@ func (r *urlRepository) Save(ctx context.Context, url *model.ShortURL) error {
 }
 
 // 从各个数据源获取的辅助方法
-
 func (r *urlRepository) getFromRedis(ctx context.Context, shortCode string) (*model.ShortURL, error) {
 	key := "shorturl:" + shortCode
 	val, err := r.sources.RedisCache.Get(ctx, key)
@@ -234,6 +352,130 @@ func (r *urlRepository) getFromRedis(ctx context.Context, shortCode string) (*mo
 		return nil, err
 	}
 	return &url, nil
+}
+
+func (r *urlRepository) getAllForRedis(ctx context.Context, pattern string) (*[]model.ShortURL, error) {
+	redisResult, err := r.sources.RedisCache.GetAll(ctx, pattern)
+	log.Println(err)
+	if err != nil || redisResult == nil {
+		return nil, err
+	}
+	log.Printf("val = %v", redisResult)
+	var result []model.ShortURL
+	bresutl := redisResult.(map[string]interface{})
+	for key, value := range bresutl {
+		result = append(result, model.ShortURL{
+			ShortCode: key,
+			LongURL:   value.(string),
+		})
+	}
+	return &result, nil
+}
+
+func (r *urlRepository) getAllForMemory[T any](ctx context.Context, pattern string) (*[]model.ShortURL, error) {
+	val, err := r.sources.MemoryCache.GetAll(ctx, pattern)
+	if err != nil || val == nil {
+		return nil, err
+	}
+
+	var result []model.ShortURL
+	data, ok := val.(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid cache value type")
+	}
+	if err := json.Unmarshal([]byte(data), &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (r *urlRepository) getAllForMysql(ctx context.Context) (*[]model.ShortURL, error) {
+	db := r.sources.MySQLDB.GetDB()
+
+	query := `SELECT id, short_code, long_url, created_at, expires_at FROM short_urls`
+	var args []interface{}
+	// 添加 context 支持（如果 db 支持）
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query short URLs: %w", err)
+	}
+	defer rows.Close()
+
+	var urls []model.ShortURL
+	for rows.Next() {
+		var url model.ShortURL
+		var expiresAt sql.NullTime // 用于安全读取可能为 NULL 的时间字段
+
+		err := rows.Scan(
+			&url.ID,
+			&url.ShortCode,
+			&url.LongURL,
+			&url.CreatedAt,
+			&expiresAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		if expiresAt.Valid {
+			url.ExpiresAt = &expiresAt.Time
+		} else {
+			url.ExpiresAt = nil
+		}
+
+		urls = append(urls, url)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return &urls, nil
+}
+
+func (r *urlRepository) getAllForSqlite(ctx context.Context) (*[]model.ShortURL, error) {
+	db := r.sources.MySQLDB.GetDB()
+
+	query := `SELECT id, short_code, long_url, created_at, expires_at FROM short_urls`
+	var args []interface{}
+
+	// 添加 context 支持（如果 db 支持）
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query short URLs: %w", err)
+	}
+	defer rows.Close()
+
+	var urls []model.ShortURL
+	for rows.Next() {
+		var url model.ShortURL
+		var expiresAt sql.NullTime // 用于安全读取可能为 NULL 的时间字段
+
+		err := rows.Scan(
+			&url.ID,
+			&url.ShortCode,
+			&url.LongURL,
+			&url.CreatedAt,
+			&expiresAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		if expiresAt.Valid {
+			url.ExpiresAt = &expiresAt.Time
+		} else {
+			url.ExpiresAt = nil
+		}
+
+		urls = append(urls, url)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
+	}
+
+	return &urls, nil
 }
 
 func (r *urlRepository) getFromMemory(ctx context.Context, shortCode string) (*model.ShortURL, error) {

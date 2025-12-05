@@ -16,6 +16,8 @@ type URLRepository interface {
 	// 数据库：优先写入 MySQL，如果失败则写入 SQLite
 	Save(ctx context.Context, url *model.ShortURL) error
 
+	GetAll(ctx context.Context, pattern string) (*[]model.ShortURL, error)
+
 	// 以下方法保持向后兼容
 	SaveToCache(ctx context.Context, url *model.ShortURL) error
 	GetFromCache(ctx context.Context, shortCode string) (*model.ShortURL, error)

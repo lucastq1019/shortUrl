@@ -79,3 +79,31 @@ func (s *Service) GetLongURL(ctx context.Context, req *shorturlpb.GetLongURLRequ
 	// 6. 返回结果
 	return resp, nil
 }
+
+func (s *Service) GetAllShortLink(ctx context.Context, req *shorturlpb.GetAllShortLinkRequest) (*shorturlpb.GetAllShortLinkResponse, error) {
+
+	dataSources, err := repository.GetDataSources()
+	if err != nil {
+		return nil, err
+	}
+	urlRepository := repository.NewURLRepository(dataSources)
+
+	shortURLModels, err := urlRepository.GetAll(ctx, "short")
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var result []*shorturlpb.ShortLink
+	for _, v := range *shortURLModels {
+		result = append(result, &shorturlpb.ShortLink{
+			ShortLink: v.ShortCode,
+			LongLink:  v.LongURL,
+		})
+	}
+
+	resp := &shorturlpb.GetAllShortLinkResponse{ShortLinks: result}
+
+	// 6. 返回结果
+	return resp, nil
+}

@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -70,6 +71,46 @@ func (rc *RedisCache) Get(ctx context.Context, key string) (interface{}, error) 
 		return val, nil
 	}
 
+	return result, nil
+}
+
+// Get 获取缓存值
+func (rc *RedisCache) GetAll(ctx context.Context, pattern string) (interface{}, error) {
+	var keys []string
+	seen := make(map[string]bool)
+	var cursor uint64 = 0
+	log.Println("redis query")
+	for {
+		keysBatch, nextCursor, err := rc.client.Scan(ctx, cursor, pattern+"*", 100).Result()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, key := range keysBatch {
+			if !seen[key] {
+				seen[key] = true
+				keys = append(keys, key)
+			}
+		}
+
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
+	log.Println(keys)
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	vals, err := rc.client.MGet(ctx, keys...).Result()
+	if err != nil {
+		panic(err)
+	}
+	
+	result := make(map[string]any)
+	for index, res := range vals {
+		result[keys[index]] = res
+	}
 	return result, nil
 }
 

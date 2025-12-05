@@ -6,6 +6,7 @@ option go_package = "github.com/username/shorturl/internal/rpc/proto";
 service ShortenerService{
     rpc CreateShortLink (CreateShortLinkRequest) returns (CreateShortLinkResponse);
     rpc GetLongURL (GetLongURLRequest) returns (GetLongURLResponse);
+    rpc GetAllShortLink(GetAllShortLinkRequest) returns (GetAllShortLinkResponse);
 }
 
 message CreateShortLinkRequest {
@@ -24,3 +25,14 @@ message GetLongURLResponse{
     bool is_found = 2;
 }
 
+message GetAllShortLinkRequest{
+}
+message GetAllShortLinkResponse{
+    repeated ShortLink shortLinks = 1;
+}
+
+
+message ShortLink {
+    string ShortLink = 1;
+    string LongLink = 2;
+}

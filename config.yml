@@ -1,8 +1,8 @@
 # 应用通用配置
 GinMode: debug
 HttpAddr: ":8080"
-MySQLDSN: "new_user:new_password@tcp(db-host:3306)/shorturl_prod"
-RedisAddr: "redis.internal:6379"
+MySQLDSN: "root:mysqL@123@tcp(localhost:3306)/shorturl_prod"
+RedisAddr: "localhost:6379"
 SQLitePath: "./data/prod.db"
 
 # gRPC 客户端需要连接的外部服务地址

@@ -205,6 +205,138 @@ func (x *GetLongURLResponse) GetIsFound() bool {
 	return false
 }
 
+type GetAllShortLinkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAllShortLinkRequest) Reset() {
+	*x = GetAllShortLinkRequest{}
+	mi := &file_proto_shortener_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAllShortLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAllShortLinkRequest) ProtoMessage() {}
+
+func (x *GetAllShortLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAllShortLinkRequest.ProtoReflect.Descriptor instead.
+func (*GetAllShortLinkRequest) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{4}
+}
+
+type GetAllShortLinkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ShortLinks    []*ShortLink           `protobuf:"bytes,1,rep,name=shortLinks,proto3" json:"shortLinks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAllShortLinkResponse) Reset() {
+	*x = GetAllShortLinkResponse{}
+	mi := &file_proto_shortener_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAllShortLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAllShortLinkResponse) ProtoMessage() {}
+
+func (x *GetAllShortLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAllShortLinkResponse.ProtoReflect.Descriptor instead.
+func (*GetAllShortLinkResponse) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetAllShortLinkResponse) GetShortLinks() []*ShortLink {
+	if x != nil {
+		return x.ShortLinks
+	}
+	return nil
+}
+
+type ShortLink struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ShortLink     string                 `protobuf:"bytes,1,opt,name=ShortLink,proto3" json:"ShortLink,omitempty"`
+	LongLink      string                 `protobuf:"bytes,2,opt,name=LongLink,proto3" json:"LongLink,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShortLink) Reset() {
+	*x = ShortLink{}
+	mi := &file_proto_shortener_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShortLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShortLink) ProtoMessage() {}
+
+func (x *ShortLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShortLink.ProtoReflect.Descriptor instead.
+func (*ShortLink) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ShortLink) GetShortLink() string {
+	if x != nil {
+		return x.ShortLink
+	}
+	return ""
+}
+
+func (x *ShortLink) GetLongLink() string {
+	if x != nil {
+		return x.LongLink
+	}
+	return ""
+}
+
 var File_proto_shortener_proto protoreflect.FileDescriptor
 
 const file_proto_shortener_proto_rawDesc = "" +
@@ -218,11 +350,20 @@ const file_proto_shortener_proto_rawDesc = "" +
 	"\tshort_key\x18\x01 \x01(\tR\bshortKey\"J\n" +
 	"\x12GetLongURLResponse\x12\x19\n" +
 	"\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x19\n" +
-	"\bis_found\x18\x02 \x01(\bR\aisFound2\xb7\x01\n" +
+	"\bis_found\x18\x02 \x01(\bR\aisFound\"\x18\n" +
+	"\x16GetAllShortLinkRequest\"O\n" +
+	"\x17GetAllShortLinkResponse\x124\n" +
+	"\n" +
+	"shortLinks\x18\x01 \x03(\v2\x14.shortener.ShortLinkR\n" +
+	"shortLinks\"E\n" +
+	"\tShortLink\x12\x1c\n" +
+	"\tShortLink\x18\x01 \x01(\tR\tShortLink\x12\x1a\n" +
+	"\bLongLink\x18\x02 \x01(\tR\bLongLink2\x91\x02\n" +
 	"\x10ShortenerService\x12X\n" +
 	"\x0fCreateShortLink\x12!.shortener.CreateShortLinkRequest\x1a\".shortener.CreateShortLinkResponse\x12I\n" +
 	"\n" +
-	"GetLongURL\x12\x1c.shortener.GetLongURLRequest\x1a\x1d.shortener.GetLongURLResponseB1Z/github.com/username/shorturl/internal/rpc/protob\x06proto3"
+	"GetLongURL\x12\x1c.shortener.GetLongURLRequest\x1a\x1d.shortener.GetLongURLResponse\x12X\n" +
+	"\x0fGetAllShortLink\x12!.shortener.GetAllShortLinkRequest\x1a\".shortener.GetAllShortLinkResponseB1Z/github.com/username/shorturl/internal/rpc/protob\x06proto3"
 
 var (
 	file_proto_shortener_proto_rawDescOnce sync.Once
@@ -236,23 +377,29 @@ func file_proto_shortener_proto_rawDescGZIP() []byte {
 	return file_proto_shortener_proto_rawDescData
 }
 
-var file_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_shortener_proto_goTypes = []any{
 	(*CreateShortLinkRequest)(nil),  // 0: shortener.CreateShortLinkRequest
 	(*CreateShortLinkResponse)(nil), // 1: shortener.CreateShortLinkResponse
 	(*GetLongURLRequest)(nil),       // 2: shortener.GetLongURLRequest
 	(*GetLongURLResponse)(nil),      // 3: shortener.GetLongURLResponse
+	(*GetAllShortLinkRequest)(nil),  // 4: shortener.GetAllShortLinkRequest
+	(*GetAllShortLinkResponse)(nil), // 5: shortener.GetAllShortLinkResponse
+	(*ShortLink)(nil),               // 6: shortener.ShortLink
 }
 var file_proto_shortener_proto_depIdxs = []int32{
-	0, // 0: shortener.ShortenerService.CreateShortLink:input_type -> shortener.CreateShortLinkRequest
-	2, // 1: shortener.ShortenerService.GetLongURL:input_type -> shortener.GetLongURLRequest
-	1, // 2: shortener.ShortenerService.CreateShortLink:output_type -> shortener.CreateShortLinkResponse
-	3, // 3: shortener.ShortenerService.GetLongURL:output_type -> shortener.GetLongURLResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	6, // 0: shortener.GetAllShortLinkResponse.shortLinks:type_name -> shortener.ShortLink
+	0, // 1: shortener.ShortenerService.CreateShortLink:input_type -> shortener.CreateShortLinkRequest
+	2, // 2: shortener.ShortenerService.GetLongURL:input_type -> shortener.GetLongURLRequest
+	4, // 3: shortener.ShortenerService.GetAllShortLink:input_type -> shortener.GetAllShortLinkRequest
+	1, // 4: shortener.ShortenerService.CreateShortLink:output_type -> shortener.CreateShortLinkResponse
+	3, // 5: shortener.ShortenerService.GetLongURL:output_type -> shortener.GetLongURLResponse
+	5, // 6: shortener.ShortenerService.GetAllShortLink:output_type -> shortener.GetAllShortLinkResponse
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_shortener_proto_init() }
@@ -266,7 +413,7 @@ func file_proto_shortener_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_shortener_proto_rawDesc), len(file_proto_shortener_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

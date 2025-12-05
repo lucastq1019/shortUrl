@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/username/shorturl/internal/cache"
 	"github.com/username/shorturl/internal/config"
 	"github.com/username/shorturl/internal/db"
+	"gorm.io/gorm"
 )
 
 // DataSources 管理所有可用的数据源
@@ -26,11 +29,13 @@ func NewDataSources(cfg *config.Config) *DataSources {
 	// 尝试创建 Redis（如果配置了）
 	if cfg.RedisAddr != "" {
 		if redisCache, err := cache.NewRedisCache(cfg.RedisAddr); err == nil {
+			log.Println("初始化redis:", cfg.RedisAddr)
 			ds.RedisCache = redisCache
 		}
 	}
 	// MemoryCache 总是可用的
 	if memoryCache, err := cache.NewMemoryCache(); err == nil {
+		log.Println("初始化memoryCache")
 		ds.MemoryCache = memoryCache
 	}
 
@@ -38,11 +43,13 @@ func NewDataSources(cfg *config.Config) *DataSources {
 	// 尝试创建 MySQL（如果配置了）
 	if cfg.MySQLDSN != "" {
 		if mysqlDB, err := db.NewMySQLDB(cfg.MySQLDSN); err == nil {
+			log.Println("初始化MysqlDB")
 			ds.MySQLDB = mysqlDB
 		}
 	}
 	// 尝试创建 SQLite（总是尝试，作为最后的 fallback）
 	if sqliteDB, err := db.NewSQLiteDB(cfg.SQLitePath); err == nil {
+		log.Println("初始化SqlLite")
 		ds.SQLiteDB = sqliteDB
 	}
 
@@ -57,4 +64,13 @@ func GetDataSources() (*DataSources, error) {
 
 	}
 	return GloablDataSources, nil
+}
+
+// migrateTable is migrate db table.
+func migrateTable(db *gorm.DB, tables ...interface{}) {
+	err := db.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate(tables...)
+	if err != nil {
+
+		panic(err)
+	}
 }
